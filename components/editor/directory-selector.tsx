@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FolderOpen } from "lucide-react";
 import { toast } from "sonner";
+import { isTauri } from "@/lib/tauri-utils";
 
 interface DirectorySelectorProps {
   onDirectoryChange: (path: string) => void;
@@ -22,27 +23,27 @@ export function DirectorySelector({ onDirectoryChange }: DirectorySelectorProps)
   const handleSelectDirectory = async () => {
     try {
       // Check if Tauri API is available
-      if (typeof window !== "undefined" && (window as any).__TAURI__) {
-        const { open } = await import("@tauri-apps/plugin-dialog");
-
-        const selected = await open({
-          directory: true,
-          multiple: false,
-          defaultPath: selectedPath || undefined,
-        });
-
-        if (selected && typeof selected === "string") {
-          setSelectedPath(selected);
-          onDirectoryChange(selected);
-          toast.success("Download directory updated");
-        }
-      } else {
-        // Fallback for web mode (development)
+      if (!isTauri()) {
         toast.info("Directory selection only works in Tauri app");
+        return;
+      }
+
+      const dialogModule = await import("@tauri-apps/plugin-dialog");
+
+      const selected = await dialogModule.open({
+        directory: true,
+        multiple: false,
+        defaultPath: selectedPath || undefined,
+      });
+
+      if (selected && typeof selected === "string") {
+        setSelectedPath(selected);
+        onDirectoryChange(selected);
+        toast.success("Download directory updated");
       }
     } catch (error) {
       console.error("Failed to open directory picker:", error);
-      toast.error("Failed to select directory");
+      toast.error(`Failed to select directory: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -65,25 +66,28 @@ export function DirectorySelector({ onDirectoryChange }: DirectorySelectorProps)
   };
 
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium">Download Directory</label>
-      <div className="flex gap-2">
-        <div className="flex-1 px-3 py-2 rounded-md bg-muted border border-border text-sm truncate">
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br from-clay-gradient-start to-clay-gradient-end shadow-clay-button">
+          <FolderOpen className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <h3 className="font-heading text-lg font-bold text-clay-foreground">Save Destination</h3>
+          <p className="text-xs text-clay-muted">Choose where to save clips</p>
+        </div>
+      </div>
+
+      <div className="flex gap-3">
+        <div className="flex-1 px-4 py-3 rounded-clay-button bg-white/60 shadow-clay-pressed text-sm text-clay-foreground truncate font-mono">
           {getDisplayPath()}
         </div>
-        <Button
-          variant="outline"
-          size="default"
+        <button
           onClick={handleSelectDirectory}
-          className="shrink-0"
+          className="shrink-0 rounded-clay-button bg-white/60 px-4 py-3 font-heading text-sm font-bold text-clay-foreground shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:bg-white/80 hover:shadow-clay-button-hover active:scale-95"
         >
-          <FolderOpen className="h-4 w-4 mr-2" />
           Choose
-        </Button>
+        </button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Clips will be saved to this directory
-      </p>
     </div>
   );
 }
