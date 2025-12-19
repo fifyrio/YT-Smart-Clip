@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { URLInput } from "@/components/editor/url-input";
 import { VideoPlayer } from "@/components/video-player/video-player";
 import { Timeline } from "@/components/video-player/timeline";
@@ -13,9 +13,9 @@ import type { ClipOptions } from "@/lib/types";
 
 export default function Home() {
   const [videoId, setVideoId] = useState<string | null>(null);
-  const [duration, setDuration] = useState(100);
-  const [startTime, setStartTime] = useState(14);
-  const [endTime, setEndTime] = useState(88);
+  const [duration, setDuration] = useState(0);
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(0);
   const [selectedFormat, setSelectedFormat] = useState("1080p-60");
   const [downloadDirectory, setDownloadDirectory] = useState<string>("");
   const [options, setOptions] = useState<ClipOptions>({
@@ -25,16 +25,23 @@ export default function Home() {
     highQuality: true,
   });
 
-  const handleVideoLoad = (id: string) => {
+  const handleVideoLoad = useCallback((id: string) => {
     setVideoId(id);
-    // TODO: Fetch actual duration from YouTube API
-    setDuration(100);
-  };
+  }, []);
 
-  const handleTimeChange = (start: number, end: number) => {
+  const handleDurationChange = useCallback((newDuration: number) => {
+    setDuration(newDuration);
+    // Set default clip range: from 10% to 90% of video duration
+    const defaultStart = Math.floor(newDuration * 0.1);
+    const defaultEnd = Math.floor(newDuration * 0.9);
+    setStartTime(defaultStart);
+    setEndTime(defaultEnd);
+  }, []);
+
+  const handleTimeChange = useCallback((start: number, end: number) => {
     setStartTime(start);
     setEndTime(end);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,7 +73,10 @@ export default function Home() {
               <label className="text-sm font-medium text-muted-foreground">
                 Preview
               </label>
-              <VideoPlayer videoId={videoId} />
+              <VideoPlayer
+                videoId={videoId}
+                onDurationChange={handleDurationChange}
+              />
             </div>
 
             <div className="p-6 rounded-lg bg-card border border-border">

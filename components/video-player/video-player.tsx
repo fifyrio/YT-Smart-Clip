@@ -7,6 +7,7 @@ interface VideoPlayerProps {
   videoId: string | null;
   onReady?: () => void;
   onTimeUpdate?: (currentTime: number) => void;
+  onDurationChange?: (duration: number) => void;
 }
 
 declare global {
@@ -16,11 +17,21 @@ declare global {
   }
 }
 
-export function VideoPlayer({ videoId, onReady, onTimeUpdate }: VideoPlayerProps) {
+export function VideoPlayer({ videoId, onReady, onTimeUpdate, onDurationChange }: VideoPlayerProps) {
   const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const onDurationChangeRef = useRef(onDurationChange);
+  const onReadyRef = useRef(onReady);
+  const onTimeUpdateRef = useRef(onTimeUpdate);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onDurationChangeRef.current = onDurationChange;
+    onReadyRef.current = onReady;
+    onTimeUpdateRef.current = onTimeUpdate;
+  });
 
   useEffect(() => {
     // Load YouTube IFrame API
@@ -52,8 +63,13 @@ export function VideoPlayer({ videoId, onReady, onTimeUpdate }: VideoPlayerProps
         rel: 0,
       },
       events: {
-        onReady: () => {
-          onReady?.();
+        onReady: (event: any) => {
+          // Get video duration when player is ready
+          const duration = event.target.getDuration();
+          if (duration && onDurationChangeRef.current) {
+            onDurationChangeRef.current(duration);
+          }
+          onReadyRef.current?.();
         },
         onStateChange: (event: any) => {
           if (event.data === window.YT.PlayerState.PLAYING) {
@@ -64,7 +80,7 @@ export function VideoPlayer({ videoId, onReady, onTimeUpdate }: VideoPlayerProps
             intervalRef.current = setInterval(() => {
               if (playerRef.current && playerRef.current.getCurrentTime) {
                 const currentTime = playerRef.current.getCurrentTime();
-                onTimeUpdate?.(currentTime);
+                onTimeUpdateRef.current?.(currentTime);
               }
             }, 100);
           } else {
@@ -86,7 +102,7 @@ export function VideoPlayer({ videoId, onReady, onTimeUpdate }: VideoPlayerProps
         playerRef.current.destroy();
       }
     };
-  }, [isPlayerReady, videoId, onReady, onTimeUpdate]);
+  }, [isPlayerReady, videoId]);
 
   if (!videoId) {
     return (
