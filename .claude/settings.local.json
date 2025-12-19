@@ -23,7 +23,13 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm dev:*)",
       "Bash(kill:*)",
-      "Bash(pnpm tauri:dev:*)"
+      "Bash(pnpm tauri:dev:*)",
+      "Bash(cargo:*)",
+      "Bash(if [ -f \"$HOME/.cargo/env\" ])",
+      "Bash(then source \"$HOME/.cargo/env\")",
+      "Bash(else echo \"Rust not installed\")",
+      "Bash(fi)",
+      "Bash(source \"$HOME/.cargo/env\")"
     ]
   }
 }
