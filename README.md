@@ -162,3 +162,10 @@ MIT License - see LICENSE file for details
 - Inspired by the [youtube-clipper](https://github.com/yourusername/youtube-clipper) project
 - UI components from [Shadcn/UI](https://ui.shadcn.com/)
 - Built with [Next.js](https://nextjs.org/) and [Tauri](https://tauri.app/)
+
+
+PRO:
+GIF exports
+Up to 4K res exports
+Lifetime updates
+2030
