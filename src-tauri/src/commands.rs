@@ -129,6 +129,8 @@ pub async fn download_clip(
     let mut yt_dlp_args = vec![
         "--format".to_string(),
         format_selector,
+        "--merge-output-format".to_string(),
+        "mp4".to_string(),
         "--download-sections".to_string(),
         format!("*{}-{}", start_str, end_str),
         "--force-keyframes-at-cuts".to_string(),
