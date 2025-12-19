@@ -19,7 +19,13 @@ export default function Home() {
   const [endTime, setEndTime] = useState(0);
   const [selectedFormat, setSelectedFormat] = useState("720p");
   const [downloadDirectory, setDownloadDirectory] = useState<string>("");
-  const [isPro, setIsPro] = useState(false);
+  const [isPro, setIsPro] = useState(() => {
+    // Check localStorage for Pro status on initial load
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("isPro") === "true";
+    }
+    return false;
+  });
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
   const [options, setOptions] = useState<ClipOptions>({
     subtitles: false,
@@ -45,6 +51,12 @@ export default function Home() {
     setEndTime(end);
   }, []);
 
+  const handleActivateSuccess = useCallback(() => {
+    setIsPro(true);
+    // You can also save to localStorage here for persistence
+    localStorage.setItem("isPro", "true");
+  }, []);
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#F4F1FA]">
       {/* Floating Background Blobs */}
@@ -59,12 +71,24 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between rounded-[40px] bg-white/60 px-8 shadow-clay-card backdrop-blur-xl mt-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#A78BFA] to-[#7C3AED] shadow-clay-button">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-clay-gradient-start to-clay-gradient-end shadow-clay-button">
                 <Scissors className="h-6 w-6 text-white" />
               </div>
-              <h1 className="font-heading text-2xl font-black tracking-tight text-[#332F3A]">
-                YT Smart Clip
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="font-heading text-2xl font-black tracking-tight text-clay-foreground">
+                  YT Smart Clip
+                </h1>
+                {isPro && (
+                  <div className="flex items-center gap-1.5 rounded-full bg-linear-to-br from-[#FBBF24] to-clay-warning px-3 py-1 shadow-clay-button">
+                    <svg className="h-3.5 w-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <span className="font-heading text-xs font-black text-white">
+                      PRO
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -134,14 +158,6 @@ export default function Home() {
               />
             </div>
 
-            {/* Processing Options Card */}
-            <div className="rounded-[32px] bg-white/70 p-6 shadow-clay-card backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-clay-card-hover">
-              <ProcessingOptions
-                options={options}
-                onOptionsChange={setOptions}
-              />
-            </div>
-
             {/* Download Button */}
             <DownloadButton
               videoId={videoId}
@@ -176,6 +192,7 @@ export default function Home() {
       <UpgradeDialog
         isOpen={isUpgradeDialogOpen}
         onClose={() => setIsUpgradeDialogOpen(false)}
+        onActivateSuccess={handleActivateSuccess}
       />
     </div>
   );

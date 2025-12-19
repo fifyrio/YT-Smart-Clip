@@ -7,6 +7,7 @@ import { LicenseDialog } from "./license-dialog";
 interface UpgradeDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onActivateSuccess?: () => void;
 }
 
 const proFeatures = [
@@ -36,7 +37,7 @@ const proFeatures = [
   },
 ];
 
-export function UpgradeDialog({ isOpen, onClose }: UpgradeDialogProps) {
+export function UpgradeDialog({ isOpen, onClose, onActivateSuccess }: UpgradeDialogProps) {
   const [isLicenseDialogOpen, setIsLicenseDialogOpen] = useState(false);
 
   if (!isOpen) return null;
@@ -159,6 +160,7 @@ export function UpgradeDialog({ isOpen, onClose }: UpgradeDialogProps) {
       <LicenseDialog
         isOpen={isLicenseDialogOpen}
         onClose={() => setIsLicenseDialogOpen(false)}
+        onActivateSuccess={onActivateSuccess}
       />
     </>
   );

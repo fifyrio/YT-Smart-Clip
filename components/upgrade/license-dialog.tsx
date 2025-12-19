@@ -6,9 +6,10 @@ import { X, Key, CheckCircle2 } from "lucide-react";
 interface LicenseDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onActivateSuccess?: () => void;
 }
 
-export function LicenseDialog({ isOpen, onClose }: LicenseDialogProps) {
+export function LicenseDialog({ isOpen, onClose, onActivateSuccess }: LicenseDialogProps) {
   const [licenseKey, setLicenseKey] = useState("");
   const [isActivating, setIsActivating] = useState(false);
   const [error, setError] = useState("");
@@ -25,19 +26,38 @@ export function LicenseDialog({ isOpen, onClose }: LicenseDialogProps) {
     setIsActivating(true);
     setError("");
 
-    // Simulate activation process
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Call the mock API endpoint
+      const response = await fetch("/api/license/activate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ licenseKey: licenseKey.trim() }),
+      });
 
-    // TODO: Replace with actual license validation logic
-    if (licenseKey.trim().length > 10) {
-      setSuccess(true);
-      setTimeout(() => {
-        onClose();
-        setSuccess(false);
-        setLicenseKey("");
-      }, 2000);
-    } else {
-      setError("Invalid license key. Please try again.");
+      const data = await response.json();
+
+      if (data.success && data.isPro) {
+        setSuccess(true);
+
+        // Call the success callback to update Pro status
+        if (onActivateSuccess) {
+          onActivateSuccess();
+        }
+
+        // Close dialog after showing success message
+        setTimeout(() => {
+          onClose();
+          setSuccess(false);
+          setLicenseKey("");
+        }, 2000);
+      } else {
+        setError(data.error || "Invalid license key. Please try again.");
+      }
+    } catch (err) {
+      console.error("License activation error:", err);
+      setError("Failed to activate license. Please try again.");
     }
 
     setIsActivating(false);
