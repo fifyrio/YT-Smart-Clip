@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadClip, checkYtDlp } from "@/lib/tauri-commands";
+import { isTauri, getTauriErrorMessage } from "@/lib/tauri-utils";
 import type { ClipOptions } from "@/lib/types";
 
 interface DownloadButtonProps {
@@ -27,6 +28,11 @@ export function DownloadButton({
   disabled,
 }: DownloadButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isTauriEnv, setIsTauriEnv] = useState(false);
+
+  useEffect(() => {
+    setIsTauriEnv(isTauri());
+  }, []);
 
   const handleDownload = async () => {
     if (!videoId) {
@@ -39,17 +45,15 @@ export function DownloadButton({
       return;
     }
 
+    if (!isTauriEnv) {
+      toast.warning(getTauriErrorMessage());
+      return;
+    }
+
     setIsProcessing(true);
     toast.info("Checking dependencies...");
 
     try {
-      // Check if running in Tauri
-      if (typeof window !== "undefined" && !(window as any).__TAURI__) {
-        toast.warning("Download only works in desktop app. Run: npm run tauri:dev");
-        setIsProcessing(false);
-        return;
-      }
-
       // Check if yt-dlp is installed
       const hasYtDlp = await checkYtDlp();
       if (!hasYtDlp) {

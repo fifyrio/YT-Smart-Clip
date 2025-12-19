@@ -21,7 +21,9 @@
       "Bash(chmod:*)",
       "Bash(pnpm --version:*)",
       "Bash(pnpm install:*)",
-      "Bash(pnpm dev:*)"
+      "Bash(pnpm dev:*)",
+      "Bash(kill:*)",
+      "Bash(pnpm tauri:dev:*)"
     ]
   }
 }

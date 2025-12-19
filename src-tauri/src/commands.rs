@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tauri::command;
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClipOptions {
@@ -33,9 +34,46 @@ pub struct VideoMetadata {
     pub error: Option<String>,
 }
 
+/// Get the path to a bundled binary (sidecar)
+fn get_binary_path(app_handle: &AppHandle, binary_name: &str) -> Result<std::path::PathBuf, String> {
+    // In development, try to use system binaries
+    #[cfg(debug_assertions)]
+    {
+        // Check if system binary exists
+        let check = Command::new("which")
+            .arg(binary_name)
+            .output();
+
+        if let Ok(output) = check {
+            if output.status.success() {
+                let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                if !path.is_empty() {
+                    log::info!("Using system binary for {}: {}", binary_name, path);
+                    return Ok(std::path::PathBuf::from(path));
+                }
+            }
+        }
+    }
+
+    // In production or if system binary not found, use bundled sidecar
+    let resource_path = app_handle.path()
+        .resource_dir()
+        .map_err(|e| format!("Failed to get resource dir: {}", e))?;
+
+    let binary_path = resource_path.join(format!("binaries/{}", binary_name));
+
+    if binary_path.exists() {
+        log::info!("Using bundled binary for {}: {}", binary_name, binary_path.display());
+        Ok(binary_path)
+    } else {
+        Err(format!("{} binary not found. Please ensure it's bundled with the app.", binary_name))
+    }
+}
+
 /// Download and clip a YouTube video
 #[command]
 pub async fn download_clip(
+    app_handle: AppHandle,
     url: String,
     video_id: String,
     start_time: f64,
@@ -46,14 +84,17 @@ pub async fn download_clip(
 ) -> Result<DownloadResult, String> {
     log::info!("Starting download: {} ({}-{})", video_id, start_time, end_time);
 
-    // Check if yt-dlp is available
-    if !check_ytdlp_sync() {
-        return Ok(DownloadResult {
-            success: false,
-            file_path: None,
-            error: Some("yt-dlp is not installed. Please install it first: brew install yt-dlp".to_string()),
-        });
-    }
+    // Get yt-dlp binary path
+    let ytdlp_path = match get_binary_path(&app_handle, "yt-dlp") {
+        Ok(path) => path,
+        Err(e) => {
+            return Ok(DownloadResult {
+                success: false,
+                file_path: None,
+                error: Some(format!("yt-dlp not found: {}", e)),
+            });
+        }
+    };
 
     // Generate unique filename
     let timestamp = std::time::SystemTime::now()
@@ -91,7 +132,7 @@ pub async fn download_clip(
     log::info!("Running yt-dlp with args: {:?}", yt_dlp_args);
 
     // Execute yt-dlp
-    let output = Command::new("yt-dlp")
+    let output = Command::new(&ytdlp_path)
         .args(&yt_dlp_args)
         .output()
         .map_err(|e| format!("Failed to execute yt-dlp: {}", e))?;
@@ -117,17 +158,21 @@ pub async fn download_clip(
 
 /// Get video metadata from YouTube
 #[command]
-pub async fn get_video_metadata(url: String) -> Result<VideoMetadata, String> {
-    if !check_ytdlp_sync() {
-        return Ok(VideoMetadata {
-            title: None,
-            duration: None,
-            thumbnail: None,
-            error: Some("yt-dlp is not installed".to_string()),
-        });
-    }
+pub async fn get_video_metadata(app_handle: AppHandle, url: String) -> Result<VideoMetadata, String> {
+    // Get yt-dlp binary path
+    let ytdlp_path = match get_binary_path(&app_handle, "yt-dlp") {
+        Ok(path) => path,
+        Err(e) => {
+            return Ok(VideoMetadata {
+                title: None,
+                duration: None,
+                thumbnail: None,
+                error: Some(format!("yt-dlp not found: {}", e)),
+            });
+        }
+    };
 
-    let output = Command::new("yt-dlp")
+    let output = Command::new(&ytdlp_path)
         .args(&[
             "--dump-json",
             "--no-playlist",
@@ -159,26 +204,32 @@ pub async fn get_video_metadata(url: String) -> Result<VideoMetadata, String> {
 
 /// Check if yt-dlp is installed
 #[command]
-pub fn check_ytdlp() -> bool {
-    check_ytdlp_sync()
-}
-
-fn check_ytdlp_sync() -> bool {
-    Command::new("yt-dlp")
-        .arg("--version")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
+pub fn check_ytdlp(app_handle: AppHandle) -> bool {
+    match get_binary_path(&app_handle, "yt-dlp") {
+        Ok(path) => {
+            Command::new(&path)
+                .arg("--version")
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false)
+        }
+        Err(_) => false,
+    }
 }
 
 /// Check if ffmpeg is installed
 #[command]
-pub fn check_ffmpeg() -> bool {
-    Command::new("ffmpeg")
-        .arg("-version")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
+pub fn check_ffmpeg(app_handle: AppHandle) -> bool {
+    match get_binary_path(&app_handle, "ffmpeg") {
+        Ok(path) => {
+            Command::new(&path)
+                .arg("-version")
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false)
+        }
+        Err(_) => false,
+    }
 }
 
 /// Format seconds to HH:MM:SS

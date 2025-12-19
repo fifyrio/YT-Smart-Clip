@@ -68,12 +68,31 @@ npm run dev
 
 ### Building the Desktop App
 
-To build the Tauri desktop application:
+#### Development Mode
+
+For development (uses system-installed yt-dlp and ffmpeg if available):
 
 ```bash
-npm run tauri dev   # Development mode
-npm run tauri build # Production build
+pnpm tauri:dev
 ```
+
+#### Production Build
+
+To build a distributable macOS app with bundled dependencies:
+
+```bash
+pnpm tauri:build
+```
+
+This will automatically:
+
+1. Download yt-dlp and ffmpeg binaries
+2. Bundle them into the .app
+3. Create a .dmg installer in `src-tauri/target/release/bundle/`
+
+**Note**: Users won't need to install yt-dlp or ffmpeg separately - everything is bundled!
+
+For detailed build instructions, see [BUILDING.md](BUILDING.md).
 
 ## 📁 Project Structure
 
