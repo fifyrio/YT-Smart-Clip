@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(npm create:*)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --import-alias \"@/*\" --no-src-dir --turbopack --skip-install)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tauri init:*)",
+      "Bash(npx shadcn@latest init:*)",
+      "Bash(npx shadcn@latest add button input switch slider select --yes --overwrite)",
+      "Bash(npm run dev:*)",
+      "Bash(rustc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run tauri:build:*)"
+    ]
+  }
+}
