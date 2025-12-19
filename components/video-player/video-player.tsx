@@ -106,18 +106,12 @@ export function VideoPlayer({ videoId, onReady, onTimeUpdate, onDurationChange }
 
   if (!videoId) {
     return (
-      <div className="w-full aspect-video bg-card rounded-lg border border-border flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
-            <Play className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <div>
-            <p className="text-sm font-medium">No video loaded</p>
-            <p className="text-xs text-muted-foreground">
-              Enter a YouTube URL to get started
-            </p>
-          </div>
-        </div>
+      <div className="w-full aspect-video bg-black rounded-lg overflow-hidden border border-border flex items-center justify-center">
+        <img
+          src="/animated-static.gif"
+          alt="Preview animation"
+          className="w-full h-full object-cover"
+        />
       </div>
     );
   }
