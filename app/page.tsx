@@ -8,7 +8,7 @@ import { FormatSelector } from "@/components/editor/format-selector";
 import { DirectorySelector } from "@/components/editor/directory-selector";
 import { ProcessingOptions } from "@/components/editor/processing-options";
 import { DownloadButton } from "@/components/download/download-button";
-import { X } from "lucide-react";
+import { Scissors } from "lucide-react";
 import type { ClipOptions } from "@/lib/types";
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
   const [endTime, setEndTime] = useState(0);
   const [selectedFormat, setSelectedFormat] = useState("720p");
   const [downloadDirectory, setDownloadDirectory] = useState<string>("");
-  const [isPro, setIsPro] = useState(false); // TODO: Get from user auth
+  const [isPro, setIsPro] = useState(false);
   const [options, setOptions] = useState<ClipOptions>({
     subtitles: false,
     summary: true,
@@ -32,7 +32,6 @@ export default function Home() {
 
   const handleDurationChange = useCallback((newDuration: number) => {
     setDuration(newDuration);
-    // Set default clip range: from 10% to 90% of video duration
     const defaultStart = Math.floor(newDuration * 0.1);
     const defaultEnd = Math.floor(newDuration * 0.9);
     setStartTime(defaultStart);
@@ -45,42 +44,66 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              <div className="w-3 h-3 rounded-full bg-green-500" />
+    <div className="relative min-h-screen overflow-hidden bg-[#F4F1FA]">
+      {/* Floating Background Blobs */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-[10%] -top-[10%] h-[60vh] w-[60vh] rounded-full bg-[#8B5CF6]/10 blur-3xl animate-clay-float" />
+        <div className="absolute -right-[10%] top-[20%] h-[60vh] w-[60vh] rounded-full bg-[#EC4899]/10 blur-3xl animate-clay-float-delayed animation-delay-2000" />
+        <div className="absolute bottom-[10%] left-[40%] h-[50vh] w-[50vh] rounded-full bg-[#0EA5E9]/10 blur-3xl animate-clay-float-slow animation-delay-4000" />
+      </div>
+
+      {/* Header with Clay Design */}
+      <header className="relative backdrop-blur-xl">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-20 items-center justify-between rounded-[40px] bg-white/60 px-8 shadow-clay-card backdrop-blur-xl mt-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#A78BFA] to-[#7C3AED] shadow-clay-button">
+                <Scissors className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="font-heading text-2xl font-black tracking-tight text-[#332F3A]">
+                YT Smart Clip
+              </h1>
             </div>
-            <span className="ml-3 font-semibold">YT Smart Clip</span>
           </div>
-          <button className="text-muted-foreground hover:text-foreground transition-colors">
-            <X className="h-5 w-5" />
-          </button>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Video Player & Timeline */}
-          <div className="lg:col-span-2 space-y-6">
-            <URLInput onVideoLoad={handleVideoLoad} />
+          <div className="lg:col-span-2 space-y-8">
+            {/* URL Input Card */}
+            <div className="rounded-[32px] bg-white/70 p-8 shadow-clay-card backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-clay-card-hover">
+              <URLInput onVideoLoad={handleVideoLoad} />
+            </div>
 
-            <div className="space-y-4">
-              <label className="text-sm font-medium text-muted-foreground">
-                Preview
-              </label>
+            {/* Video Player Card */}
+            <div className="rounded-[32px] bg-white/70 p-8 shadow-clay-card backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-clay-card-hover">
+              <div className="mb-4">
+                <h2 className="font-heading text-xl font-bold text-[#332F3A]">
+                  Preview
+                </h2>
+                <p className="text-sm text-[#635F69] mt-1">
+                  Watch and select the perfect clip
+                </p>
+              </div>
               <VideoPlayer
                 videoId={videoId}
                 onDurationChange={handleDurationChange}
               />
             </div>
 
-            <div className="p-6 rounded-lg bg-card border border-border">
+            {/* Timeline Card */}
+            <div className="rounded-[32px] bg-white/70 p-8 shadow-clay-card backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-clay-card-hover">
+              <div className="mb-4">
+                <h2 className="font-heading text-xl font-bold text-[#332F3A]">
+                  Clip Range
+                </h2>
+                <p className="text-sm text-[#635F69] mt-1">
+                  Drag to select start and end points
+                </p>
+              </div>
               <Timeline
                 duration={duration}
                 startTime={startTime}
@@ -92,7 +115,8 @@ export default function Home() {
 
           {/* Right Column - Settings */}
           <div className="space-y-6">
-            <div className="p-6 rounded-lg bg-card border border-border">
+            {/* Video Quality Card */}
+            <div className="rounded-[32px] bg-white/70 p-6 shadow-clay-card backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-clay-card-hover">
               <FormatSelector
                 selectedFormat={selectedFormat}
                 onFormatChange={setSelectedFormat}
@@ -100,19 +124,22 @@ export default function Home() {
               />
             </div>
 
-            <div className="p-6 rounded-lg bg-card border border-border">
+            {/* Save Destination Card */}
+            <div className="rounded-[32px] bg-white/70 p-6 shadow-clay-card backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-clay-card-hover">
               <DirectorySelector
                 onDirectoryChange={setDownloadDirectory}
               />
             </div>
 
-            <div className="p-6 rounded-lg bg-card border border-border">
+            {/* Processing Options Card */}
+            <div className="rounded-[32px] bg-white/70 p-6 shadow-clay-card backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-clay-card-hover">
               <ProcessingOptions
                 options={options}
                 onOptionsChange={setOptions}
               />
             </div>
 
+            {/* Download Button */}
             <DownloadButton
               videoId={videoId}
               startTime={startTime}
@@ -122,10 +149,21 @@ export default function Home() {
               options={options}
             />
 
-            <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-              <p className="text-sm text-yellow-600 dark:text-yellow-500 flex items-center gap-2">
-                <span className="font-semibold">⚠️ View AI Summary</span>
-              </p>
+            {/* AI Summary Teaser */}
+            <div className="rounded-[24px] bg-gradient-to-br from-[#F59E0B]/10 to-[#F59E0B]/5 p-4 border-2 border-[#F59E0B]/20 backdrop-blur-xl">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#FBBF24] to-[#F59E0B]">
+                  <span className="text-sm font-bold text-white">✨</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-heading text-sm font-bold text-[#92400E]">
+                    AI Summary Coming Soon
+                  </p>
+                  <p className="text-xs text-[#B45309]">
+                    Get smart insights from your clips
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

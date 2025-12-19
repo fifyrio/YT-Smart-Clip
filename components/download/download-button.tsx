@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadClip, checkYtDlp } from "@/lib/tauri-commands";
@@ -54,7 +53,6 @@ export function DownloadButton({
     toast.info("Checking dependencies...");
 
     try {
-      // Check if yt-dlp is installed
       const hasYtDlp = await checkYtDlp();
       if (!hasYtDlp) {
         toast.error("yt-dlp is not installed. Please install it: brew install yt-dlp");
@@ -64,7 +62,6 @@ export function DownloadButton({
 
       toast.info("Downloading and clipping video...");
 
-      // Call Tauri command to download
       const result = await downloadClip({
         url: `https://www.youtube.com/watch?v=${videoId}`,
         videoId,
@@ -92,23 +89,24 @@ export function DownloadButton({
   };
 
   return (
-    <Button
-      size="lg"
-      className="w-full"
+    <button
       onClick={handleDownload}
       disabled={disabled || isProcessing || !videoId}
+      className="group relative w-full rounded-clay-button bg-linear-to-br from-clay-gradient-start to-clay-gradient-end px-8 py-4 font-heading text-lg font-bold text-white shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:shadow-clay-button-hover active:scale-[0.92] active:shadow-clay-pressed disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-clay-button disabled:active:scale-100"
     >
-      {isProcessing ? (
-        <>
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          Processing...
-        </>
-      ) : (
-        <>
-          <Download className="mr-2 h-5 w-5" />
-          Download Clip
-        </>
-      )}
-    </Button>
+      <span className="flex items-center justify-center gap-3">
+        {isProcessing ? (
+          <>
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Processing...</span>
+          </>
+        ) : (
+          <>
+            <Download className="h-6 w-6" />
+            <span>Download Clip</span>
+          </>
+        )}
+      </span>
+    </button>
   );
 }

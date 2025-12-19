@@ -20,13 +20,18 @@ const qualities = [
 
 export function FormatSelector({ selectedFormat, onFormatChange, isPro = false }: FormatSelectorProps) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Video className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium">Video Quality</span>
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#A78BFA] to-[#7C3AED] shadow-clay-button">
+          <Video className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <h3 className="font-heading text-lg font-bold text-[#332F3A]">Video Quality</h3>
+          <p className="text-xs text-[#635F69]">Select your preferred resolution</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {qualities.map((quality) => {
           const isDisabled = quality.isPro && !isPro;
           const isSelected = selectedFormat === quality.id;
@@ -37,38 +42,42 @@ export function FormatSelector({ selectedFormat, onFormatChange, isPro = false }
               onClick={() => !isDisabled && onFormatChange(quality.id)}
               disabled={isDisabled}
               className={cn(
-                "relative p-3 rounded-lg border text-left transition-all",
+                "relative rounded-[20px] p-4 text-left transition-all duration-300",
                 isSelected && !isDisabled
-                  ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                  : "border-border hover:border-primary/50",
+                  ? "bg-gradient-to-br from-[#A78BFA] to-[#7C3AED] shadow-clay-button scale-105"
+                  : "bg-white/60 shadow-clay-pressed hover:bg-white/80 hover:-translate-y-1",
                 isDisabled
-                  ? "opacity-50 cursor-not-allowed bg-muted/30"
-                  : "hover:bg-accent/50 cursor-pointer"
+                  ? "opacity-40 cursor-not-allowed"
+                  : "cursor-pointer active:scale-95"
               )}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className={cn(
-                      "font-medium text-sm",
-                      isDisabled && "text-muted-foreground"
+                      "font-heading font-bold text-base",
+                      isSelected && !isDisabled ? "text-white" : "text-[#332F3A]",
+                      isDisabled && "text-[#635F69]"
                     )}>
                       {quality.label}
                     </span>
                     {quality.isPro && (
                       <Crown className={cn(
-                        "h-3 w-3",
-                        isDisabled ? "text-muted-foreground" : "text-yellow-500"
+                        "h-3.5 w-3.5",
+                        isDisabled ? "text-[#635F69]" : isSelected ? "text-[#FBBF24]" : "text-[#F59E0B]"
                       )} />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className={cn(
+                    "text-xs mt-0.5 font-medium",
+                    isSelected && !isDisabled ? "text-white/80" : "text-[#635F69]"
+                  )}>
                     {quality.resolution}
                   </p>
                 </div>
                 {isSelected && !isDisabled && (
-                  <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-white" />
+                  <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-clay-button">
+                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#7C3AED]" />
                   </div>
                 )}
               </div>
@@ -78,11 +87,20 @@ export function FormatSelector({ selectedFormat, onFormatChange, isPro = false }
       </div>
 
       {!isPro && (
-        <div className="mt-3 p-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-          <p className="text-xs text-yellow-600 dark:text-yellow-500">
-            <Crown className="h-3 w-3 inline mr-1" />
-            Upgrade to Pro for HD & 4K quality
-          </p>
+        <div className="rounded-[20px] bg-gradient-to-br from-[#F59E0B]/10 to-[#F59E0B]/5 p-3 border-2 border-[#F59E0B]/20">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FBBF24] to-[#F59E0B] shadow-clay-button">
+              <Crown className="h-4 w-4 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="font-heading text-sm font-bold text-[#92400E]">
+                Upgrade to Pro
+              </p>
+              <p className="text-xs text-[#B45309]">
+                Unlock HD & 4K quality exports
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
