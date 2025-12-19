@@ -168,4 +168,4 @@ PRO:
 GIF exports
 Up to 4K res exports
 Lifetime updates
-2030
+AI Summary

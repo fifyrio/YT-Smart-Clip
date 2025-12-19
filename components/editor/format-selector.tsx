@@ -7,6 +7,7 @@ interface FormatSelectorProps {
   selectedFormat: string;
   onFormatChange: (format: string) => void;
   isPro?: boolean;
+  onUpgradeClick?: () => void;
 }
 
 const qualities = [
@@ -18,7 +19,7 @@ const qualities = [
   { id: "2160p", label: "2160p (4K)", resolution: "3840x2160", isPro: true },
 ];
 
-export function FormatSelector({ selectedFormat, onFormatChange, isPro = false }: FormatSelectorProps) {
+export function FormatSelector({ selectedFormat, onFormatChange, isPro = false, onUpgradeClick }: FormatSelectorProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -87,12 +88,15 @@ export function FormatSelector({ selectedFormat, onFormatChange, isPro = false }
       </div>
 
       {!isPro && (
-        <div className="rounded-[20px] bg-gradient-to-br from-[#F59E0B]/10 to-[#F59E0B]/5 p-3 border-2 border-[#F59E0B]/20">
+        <button
+          onClick={onUpgradeClick}
+          className="w-full rounded-clay-button bg-linear-to-br from-clay-warning/10 to-clay-warning/5 p-3 border-2 border-clay-warning/20 transition-all duration-300 hover:-translate-y-1 hover:border-clay-warning/40 hover:from-clay-warning/15 hover:to-clay-warning/10 active:scale-95"
+        >
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FBBF24] to-[#F59E0B] shadow-clay-button">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#FBBF24] to-clay-warning shadow-clay-button">
               <Crown className="h-4 w-4 text-white" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 text-left">
               <p className="font-heading text-sm font-bold text-[#92400E]">
                 Upgrade to Pro
               </p>
@@ -101,7 +105,7 @@ export function FormatSelector({ selectedFormat, onFormatChange, isPro = false }
               </p>
             </div>
           </div>
-        </div>
+        </button>
       )}
     </div>
   );

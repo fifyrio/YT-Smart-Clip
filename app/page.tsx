@@ -8,6 +8,7 @@ import { FormatSelector } from "@/components/editor/format-selector";
 import { DirectorySelector } from "@/components/editor/directory-selector";
 import { ProcessingOptions } from "@/components/editor/processing-options";
 import { DownloadButton } from "@/components/download/download-button";
+import { UpgradeDialog } from "@/components/upgrade/upgrade-dialog";
 import { Scissors } from "lucide-react";
 import type { ClipOptions } from "@/lib/types";
 
@@ -19,6 +20,7 @@ export default function Home() {
   const [selectedFormat, setSelectedFormat] = useState("720p");
   const [downloadDirectory, setDownloadDirectory] = useState<string>("");
   const [isPro, setIsPro] = useState(false);
+  const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
   const [options, setOptions] = useState<ClipOptions>({
     subtitles: false,
     summary: true,
@@ -121,6 +123,7 @@ export default function Home() {
                 selectedFormat={selectedFormat}
                 onFormatChange={setSelectedFormat}
                 isPro={isPro}
+                onUpgradeClick={() => setIsUpgradeDialogOpen(true)}
               />
             </div>
 
@@ -168,6 +171,12 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Global Upgrade Dialog */}
+      <UpgradeDialog
+        isOpen={isUpgradeDialogOpen}
+        onClose={() => setIsUpgradeDialogOpen(false)}
+      />
     </div>
   );
 }
