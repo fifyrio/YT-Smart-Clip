@@ -16,8 +16,9 @@ export default function Home() {
   const [duration, setDuration] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(0);
-  const [selectedFormat, setSelectedFormat] = useState("1080p-60");
+  const [selectedFormat, setSelectedFormat] = useState("720p");
   const [downloadDirectory, setDownloadDirectory] = useState<string>("");
+  const [isPro, setIsPro] = useState(false); // TODO: Get from user auth
   const [options, setOptions] = useState<ClipOptions>({
     subtitles: false,
     summary: true,
@@ -95,6 +96,7 @@ export default function Home() {
               <FormatSelector
                 selectedFormat={selectedFormat}
                 onFormatChange={setSelectedFormat}
+                isPro={isPro}
               />
             </div>
 

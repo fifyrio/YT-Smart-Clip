@@ -70,6 +70,19 @@ fn get_binary_path(app_handle: &AppHandle, binary_name: &str) -> Result<std::pat
     }
 }
 
+/// Convert quality ID to yt-dlp format selector
+fn quality_to_format(quality: &str) -> String {
+    match quality {
+        "360p" => "bestvideo[height<=360]+bestaudio/best[height<=360]".to_string(),
+        "480p" => "bestvideo[height<=480]+bestaudio/best[height<=480]".to_string(),
+        "720p" => "bestvideo[height<=720]+bestaudio/best[height<=720]".to_string(),
+        "1080p" => "bestvideo[height<=1080]+bestaudio/best[height<=1080]".to_string(),
+        "1440p" => "bestvideo[height<=1440]+bestaudio/best[height<=1440]".to_string(),
+        "2160p" => "bestvideo[height<=2160]+bestaudio/best[height<=2160]".to_string(),
+        _ => "best".to_string(), // fallback to best quality
+    }
+}
+
 /// Download and clip a YouTube video
 #[command]
 pub async fn download_clip(
@@ -82,7 +95,7 @@ pub async fn download_clip(
     format_id: String,
     options: ClipOptions,
 ) -> Result<DownloadResult, String> {
-    log::info!("Starting download: {} ({}-{})", video_id, start_time, end_time);
+    log::info!("Starting download: {} ({}-{}) with quality: {}", video_id, start_time, end_time, format_id);
 
     // Get yt-dlp binary path
     let ytdlp_path = match get_binary_path(&app_handle, "yt-dlp") {
@@ -108,10 +121,14 @@ pub async fn download_clip(
     let start_str = format_time(start_time);
     let end_str = format_time(end_time);
 
+    // Convert quality to yt-dlp format selector
+    let format_selector = quality_to_format(&format_id);
+    log::info!("Using format selector: {}", format_selector);
+
     // Build yt-dlp command
     let mut yt_dlp_args = vec![
         "--format".to_string(),
-        format_id,
+        format_selector,
         "--download-sections".to_string(),
         format!("*{}-{}", start_str, end_str),
         "--force-keyframes-at-cuts".to_string(),

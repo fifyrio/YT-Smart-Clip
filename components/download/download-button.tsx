@@ -71,7 +71,7 @@ export function DownloadButton({
         startTime,
         endTime,
         outputPath: downloadDirectory,
-        formatId: "best",
+        formatId: formatId,
         options,
       });
 
