@@ -2,6 +2,21 @@
 
 A modern desktop application for clipping YouTube videos with AI-powered features. Built with Next.js, React, and Tauri.
 
+## How to use
+
+# 开发
+pnpm dev              # ✅ 已测试，运行正常
+pnpm tauri:dev        # 启动 Tauri 桌面应用
+
+# 构建
+pnpm build
+pnpm tauri:build
+
+# 依赖管理
+pnpm install
+pnpm add <package>
+pnpm remove <package>
+
 ## ✨ Features
 
 - 🎥 **YouTube Video Preview** - Load and preview YouTube videos directly in the app

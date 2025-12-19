@@ -5,6 +5,7 @@ import { URLInput } from "@/components/editor/url-input";
 import { VideoPlayer } from "@/components/video-player/video-player";
 import { Timeline } from "@/components/video-player/timeline";
 import { FormatSelector } from "@/components/editor/format-selector";
+import { DirectorySelector } from "@/components/editor/directory-selector";
 import { ProcessingOptions } from "@/components/editor/processing-options";
 import { DownloadButton } from "@/components/download/download-button";
 import { X } from "lucide-react";
@@ -16,6 +17,7 @@ export default function Home() {
   const [startTime, setStartTime] = useState(14);
   const [endTime, setEndTime] = useState(88);
   const [selectedFormat, setSelectedFormat] = useState("1080p-60");
+  const [downloadDirectory, setDownloadDirectory] = useState<string>("");
   const [options, setOptions] = useState<ClipOptions>({
     subtitles: false,
     summary: true,
@@ -87,6 +89,12 @@ export default function Home() {
             </div>
 
             <div className="p-6 rounded-lg bg-card border border-border">
+              <DirectorySelector
+                onDirectoryChange={setDownloadDirectory}
+              />
+            </div>
+
+            <div className="p-6 rounded-lg bg-card border border-border">
               <ProcessingOptions
                 options={options}
                 onOptionsChange={setOptions}
@@ -98,6 +106,8 @@ export default function Home() {
               startTime={startTime}
               endTime={endTime}
               formatId={selectedFormat}
+              downloadDirectory={downloadDirectory}
+              options={options}
             />
 
             <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">

@@ -14,7 +14,14 @@
       "Bash(npm run dev:*)",
       "Bash(rustc:*)",
       "Bash(npm run build:*)",
-      "Bash(npm run tauri:build:*)"
+      "Bash(npm run tauri:build:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)",
+      "Bash(yt-dlp:*)",
+      "Bash(chmod:*)",
+      "Bash(pnpm --version:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm dev:*)"
     ]
   }
 }
