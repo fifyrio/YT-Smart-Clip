@@ -41,8 +41,8 @@ export function URLInput({ onVideoLoad }: URLInputProps) {
   };
 
   return (
-    <div className="w-full space-y-2">
-      <label className="text-sm font-medium text-muted-foreground">
+    <div className="w-full space-y-1.5">
+      <label className="text-xs font-medium text-muted-foreground">
         YouTube URL
       </label>
       <div className="relative">
@@ -51,7 +51,7 @@ export function URLInput({ onVideoLoad }: URLInputProps) {
           placeholder="https://www.youtube.com/watch?v=XXXXX"
           value={url}
           onChange={(e) => handleUrlChange(e.target.value)}
-          className={`pr-20 ${
+          className={`pr-20 h-10 text-sm ${
             url && !isValid ? "border-destructive" : ""
           } ${isValid ? "border-primary" : ""}`}
         />
@@ -60,19 +60,19 @@ export function URLInput({ onVideoLoad }: URLInputProps) {
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 w-7 p-0"
+              className="h-6 w-6 p-0"
               onClick={handleClear}
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </Button>
           )}
           <Button
             size="sm"
             variant="ghost"
-            className="h-7 w-7 p-0"
+            className="h-6 w-6 p-0"
             onClick={handlePaste}
           >
-            <Copy className="h-4 w-4" />
+            <Copy className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>

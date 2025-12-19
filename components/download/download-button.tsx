@@ -92,17 +92,17 @@ export function DownloadButton({
     <button
       onClick={handleDownload}
       disabled={disabled || isProcessing || !videoId}
-      className="group relative w-full rounded-clay-button bg-linear-to-br from-clay-gradient-start to-clay-gradient-end px-8 py-4 font-heading text-lg font-bold text-white shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:shadow-clay-button-hover active:scale-[0.92] active:shadow-clay-pressed disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-clay-button disabled:active:scale-100"
+      className="group relative w-full rounded-clay-button bg-linear-to-br from-clay-gradient-start to-clay-gradient-end px-4 py-2.5 font-heading text-sm font-bold text-white shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:shadow-clay-button-hover active:scale-[0.92] active:shadow-clay-pressed disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-clay-button disabled:active:scale-100"
     >
-      <span className="flex items-center justify-center gap-3">
+      <span className="flex items-center justify-center gap-2">
         {isProcessing ? (
           <>
-            <Loader2 className="h-6 w-6 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             <span>Processing...</span>
           </>
         ) : (
           <>
-            <Download className="h-6 w-6" />
+            <Download className="h-4 w-4" />
             <span>Download Clip</span>
           </>
         )}

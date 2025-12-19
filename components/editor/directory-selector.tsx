@@ -66,24 +66,24 @@ export function DirectorySelector({ onDirectoryChange }: DirectorySelectorProps)
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br from-clay-gradient-start to-clay-gradient-end shadow-clay-button">
-          <FolderOpen className="h-5 w-5 text-white" />
+    <div className="space-y-2.5">
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-br from-clay-gradient-start to-clay-gradient-end shadow-clay-button">
+          <FolderOpen className="h-4 w-4 text-white" />
         </div>
         <div>
-          <h3 className="font-heading text-lg font-bold text-clay-foreground">Save Destination</h3>
-          <p className="text-xs text-clay-muted">Choose where to save clips</p>
+          <h3 className="font-heading text-sm font-bold text-clay-foreground">Save Destination</h3>
+          <p className="text-[10px] text-clay-muted">Choose save location</p>
         </div>
       </div>
 
-      <div className="flex gap-3">
-        <div className="flex-1 px-4 py-3 rounded-clay-button bg-white/60 shadow-clay-pressed text-sm text-clay-foreground truncate font-mono">
+      <div className="flex gap-2">
+        <div className="flex-1 px-3 py-2 rounded-clay-button bg-white/60 shadow-clay-pressed text-xs text-clay-foreground truncate font-mono">
           {getDisplayPath()}
         </div>
         <button
           onClick={handleSelectDirectory}
-          className="shrink-0 rounded-clay-button bg-white/60 px-4 py-3 font-heading text-sm font-bold text-clay-foreground shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:bg-white/80 hover:shadow-clay-button-hover active:scale-95"
+          className="shrink-0 rounded-clay-button bg-white/60 px-3 py-2 font-heading text-xs font-bold text-clay-foreground shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:bg-white/80 hover:shadow-clay-button-hover active:scale-95"
         >
           Choose
         </button>

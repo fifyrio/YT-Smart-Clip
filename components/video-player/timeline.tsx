@@ -23,16 +23,16 @@ export function Timeline({ duration, startTime, endTime, onTimeChange }: Timelin
   const clipDuration = endTime - startTime;
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-2">
       <div className="flex items-center gap-2">
-        <Scissors className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium">Clip Range</span>
-        <span className="text-xs text-muted-foreground ml-auto">
+        <Scissors className="h-3.5 w-3.5 text-primary" />
+        <span className="text-xs font-medium">Clip Range</span>
+        <span className="text-[10px] text-muted-foreground ml-auto">
           Duration: {formatTime(clipDuration)}
         </span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Slider
           min={0}
           max={duration || 100}
@@ -43,14 +43,14 @@ export function Timeline({ duration, startTime, endTime, onTimeChange }: Timelin
           minStepsBetweenThumbs={1}
         />
 
-        <div className="flex justify-between items-center text-sm">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Start</p>
-            <p className="font-mono font-medium">{formatTime(startTime)}</p>
+        <div className="flex justify-between items-center text-xs">
+          <div className="space-y-0.5">
+            <p className="text-[10px] text-muted-foreground">Start</p>
+            <p className="font-mono font-medium text-xs">{formatTime(startTime)}</p>
           </div>
-          <div className="space-y-1 text-right">
-            <p className="text-xs text-muted-foreground">End</p>
-            <p className="font-mono font-medium">{formatTime(endTime)}</p>
+          <div className="space-y-0.5 text-right">
+            <p className="text-[10px] text-muted-foreground">End</p>
+            <p className="font-mono font-medium text-xs">{formatTime(endTime)}</p>
           </div>
         </div>
       </div>
