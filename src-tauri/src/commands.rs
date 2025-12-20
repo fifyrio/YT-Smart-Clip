@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tauri::command;
 use tauri::{AppHandle, Manager};
+use reqwest::Client;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClipOptions {
@@ -32,6 +33,53 @@ pub struct VideoMetadata {
     pub thumbnail: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ActivateLicenseRequest {
+    #[serde(rename = "licenseKey")]
+    pub license_key: String,
+    #[serde(rename = "deviceHash")]
+    pub device_hash: String,
+    #[serde(rename = "deviceName")]
+    pub device_name: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ActivateLicenseResponse {
+    #[serde(rename = "activationToken")]
+    pub activation_token: String,
+    pub plan: String,
+    #[serde(rename = "expiresAt")]
+    pub expires_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VerifyTokenResponse {
+    pub valid: bool,
+    #[serde(rename = "licenseId", skip_serializing_if = "Option::is_none")]
+    pub license_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub plan: Option<String>,
+    #[serde(rename = "expiresAt", skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LicenseError {
+    pub error: String,
+}
+
+fn license_api_url() -> String {
+    std::env::var("LICENSE_API_URL").unwrap_or_else(|_| {
+        if cfg!(debug_assertions) {
+            "http://localhost:3000/api/license/activate".to_string()
+        } else {
+            "https://ytsmartclip.org/api/license/activate".to_string()
+        }
+    })
 }
 
 /// Get the path to a bundled binary (sidecar)
@@ -221,6 +269,74 @@ pub async fn get_video_metadata(app_handle: AppHandle, url: String) -> Result<Vi
     })
 }
 
+/// Activate a license key via the license API
+#[command]
+pub async fn activate_license(request: ActivateLicenseRequest) -> Result<ActivateLicenseResponse, String> {
+    let client = Client::new();
+    let response = client
+        .post(license_api_url())
+        .json(&request)
+        .send()
+        .await
+        .map_err(|e| format!("Network error: {}", e))?;
+
+    let status = response.status();
+    let body = response
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read response: {}", e))?;
+
+    if !status.is_success() {
+        if let Ok(error_payload) = serde_json::from_str::<LicenseError>(&body) {
+            return Err(error_payload.error);
+        }
+        log::error!(
+            "License activation failed: status={}, body={}",
+            status.as_u16(),
+            body
+        );
+        return Err("Failed to activate license".to_string());
+    }
+
+    serde_json::from_str::<ActivateLicenseResponse>(&body)
+        .map_err(|e| format!("Failed to parse activation response: {}", e))
+}
+
+/// Verify a license activation token via the license API
+#[command]
+pub async fn verify_activation_token(token: String) -> Result<VerifyTokenResponse, String> {
+    let client = Client::new();
+    let response = client
+        .get(license_api_url())
+        .bearer_auth(token)
+        .send()
+        .await
+        .map_err(|e| format!("Network error: {}", e))?;
+
+    let status = response.status();
+    let body = response
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read response: {}", e))?;
+
+    if status.is_success() {
+        return serde_json::from_str::<VerifyTokenResponse>(&body)
+            .map_err(|e| format!("Failed to parse verification response: {}", e));
+    }
+
+    if let Ok(error_payload) = serde_json::from_str::<VerifyTokenResponse>(&body) {
+        return Ok(error_payload);
+    }
+
+    Ok(VerifyTokenResponse {
+        valid: false,
+        license_id: None,
+        plan: None,
+        expires_at: None,
+        error: Some("Failed to verify token".to_string()),
+    })
+}
+
 /// Check if yt-dlp is installed
 #[command]
 pub fn check_ytdlp(app_handle: AppHandle) -> bool {
@@ -258,4 +374,100 @@ fn format_time(seconds: f64) -> String {
     let minutes = (total_secs % 3600) / 60;
     let secs = total_secs % 60;
     format!("{:02}:{:02}:{:02}", hours, minutes, secs)
+}
+
+/// Get device ID (SHA-256 hash of hardware identifiers)
+#[command]
+pub fn get_device_id() -> Result<String, String> {
+    #[cfg(target_os = "macos")]
+    {
+        use std::process::Command;
+        use sha2::{Sha256, Digest};
+
+        // Get hardware UUID
+        let hardware_uuid = Command::new("ioreg")
+            .args(&["-d2", "-c", "IOPlatformExpertDevice"])
+            .output()
+            .map_err(|e| format!("Failed to get hardware UUID: {}", e))?;
+
+        let hw_output = String::from_utf8_lossy(&hardware_uuid.stdout);
+        let hw_uuid = hw_output
+            .lines()
+            .find(|line| line.contains("IOPlatformUUID"))
+            .and_then(|line| {
+                line.split('"')
+                    .nth(3)
+            })
+            .unwrap_or("unknown-uuid");
+
+        // Get serial number
+        let serial_num = Command::new("ioreg")
+            .args(&["-l"])
+            .output()
+            .map_err(|e| format!("Failed to get serial number: {}", e))?;
+
+        let sn_output = String::from_utf8_lossy(&serial_num.stdout);
+        let serial = sn_output
+            .lines()
+            .find(|line| line.contains("IOPlatformSerialNumber"))
+            .and_then(|line| {
+                line.split('"')
+                    .nth(3)
+            })
+            .unwrap_or("unknown-serial");
+
+        // Combine and hash
+        let device_string = format!("{}-{}", hw_uuid, serial);
+        let mut hasher = Sha256::new();
+        hasher.update(device_string.as_bytes());
+        let result = hasher.finalize();
+
+        Ok(format!("{:x}", result))
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        // For other platforms, use a simple fallback
+        use sha2::{Sha256, Digest};
+        let hostname = hostname::get()
+            .map(|h| h.to_string_lossy().to_string())
+            .unwrap_or_else(|_| "unknown".to_string());
+
+        let mut hasher = Sha256::new();
+        hasher.update(hostname.as_bytes());
+        let result = hasher.finalize();
+
+        Ok(format!("{:x}", result))
+    }
+}
+
+/// Get human-readable device name
+#[command]
+pub fn get_device_name() -> Result<String, String> {
+    #[cfg(target_os = "macos")]
+    {
+        use std::process::Command;
+
+        // Get computer name
+        let output = Command::new("scutil")
+            .args(&["--get", "ComputerName"])
+            .output()
+            .map_err(|e| format!("Failed to get device name: {}", e))?;
+
+        if output.status.success() {
+            let name = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !name.is_empty() {
+                return Ok(name);
+            }
+        }
+
+        Ok("Mac".to_string())
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        hostname::get()
+            .map(|h| h.to_string_lossy().to_string())
+            .or(Ok("Unknown Device".to_string()))
+    }
 }

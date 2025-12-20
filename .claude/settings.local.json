@@ -29,7 +29,8 @@
       "Bash(then source \"$HOME/.cargo/env\")",
       "Bash(else echo \"Rust not installed\")",
       "Bash(fi)",
-      "Bash(source \"$HOME/.cargo/env\")"
+      "Bash(source \"$HOME/.cargo/env\")",
+      "Bash(curl:*)"
     ]
   }
 }

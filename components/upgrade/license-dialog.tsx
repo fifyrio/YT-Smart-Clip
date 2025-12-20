@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { X, Key, CheckCircle2 } from "lucide-react";
+import { generateDeviceHash, getDeviceName } from "@/lib/device-utils";
+import {
+  activateLicense,
+  storeActivationToken,
+  parseActivationError,
+} from "@/lib/license-api";
 
 interface LicenseDialogProps {
   isOpen: boolean;
@@ -27,40 +33,40 @@ export function LicenseDialog({ isOpen, onClose, onActivateSuccess }: LicenseDia
     setError("");
 
     try {
-      // Call the mock API endpoint
-      const response = await fetch("/api/license/activate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ licenseKey: licenseKey.trim() }),
+      // Generate device hash and get device name
+      const deviceHash = await generateDeviceHash();
+      const deviceName = await getDeviceName();
+
+      // Call the real license activation API
+      const response = await activateLicense({
+        licenseKey: licenseKey.trim(),
+        deviceHash,
+        deviceName,
       });
 
-      const data = await response.json();
+      // Store the activation token
+      storeActivationToken(response.activationToken);
 
-      if (data.success && data.isPro) {
-        setSuccess(true);
+      // Mark as success
+      setSuccess(true);
 
-        // Call the success callback to update Pro status
-        if (onActivateSuccess) {
-          onActivateSuccess();
-        }
-
-        // Close dialog after showing success message
-        setTimeout(() => {
-          onClose();
-          setSuccess(false);
-          setLicenseKey("");
-        }, 2000);
-      } else {
-        setError(data.error || "Invalid license key. Please try again.");
+      // Call the success callback to update Pro status
+      if (onActivateSuccess) {
+        onActivateSuccess();
       }
+
+      // Close dialog after showing success message
+      setTimeout(() => {
+        onClose();
+        setSuccess(false);
+        setLicenseKey("");
+      }, 2000);
     } catch (err) {
       console.error("License activation error:", err);
-      setError("Failed to activate license. Please try again.");
+      setError(parseActivationError(err));
+    } finally {
+      setIsActivating(false);
     }
-
-    setIsActivating(false);
   };
 
   const handleClose = () => {

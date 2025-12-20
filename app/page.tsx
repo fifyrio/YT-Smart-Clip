@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { URLInput } from "@/components/editor/url-input";
 import { VideoPlayer } from "@/components/video-player/video-player";
 import { Timeline } from "@/components/video-player/timeline";
@@ -12,6 +12,7 @@ import { UpgradeDialog } from "@/components/upgrade/upgrade-dialog";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { Scissors, Settings } from "lucide-react";
 import type { ClipOptions } from "@/lib/types";
+import { getStoredActivationToken } from "@/lib/license-api";
 
 export default function Home() {
   const [videoId, setVideoId] = useState<string | null>(null);
@@ -20,13 +21,7 @@ export default function Home() {
   const [endTime, setEndTime] = useState(0);
   const [selectedFormat, setSelectedFormat] = useState("720p");
   const [downloadDirectory, setDownloadDirectory] = useState<string>("");
-  const [isPro, setIsPro] = useState(() => {
-    // Check localStorage for Pro status on initial load
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("isPro") === "true";
-    }
-    return false;
-  });
+  const [isPro, setIsPro] = useState(false);
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [options, setOptions] = useState<ClipOptions>({
@@ -53,9 +48,23 @@ export default function Home() {
     setEndTime(end);
   }, []);
 
+  // Check for activation token on mount
+  useEffect(() => {
+    const checkActivation = () => {
+      const token = getStoredActivationToken();
+      if (token) {
+        // Token exists, mark as Pro
+        // TODO: In the future, verify token signature offline
+        setIsPro(true);
+        localStorage.setItem("isPro", "true");
+      }
+    };
+
+    checkActivation();
+  }, []);
+
   const handleActivateSuccess = useCallback(() => {
     setIsPro(true);
-    // You can also save to localStorage here for persistence
     localStorage.setItem("isPro", "true");
   }, []);
 
