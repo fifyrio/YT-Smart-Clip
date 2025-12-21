@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { X, Crown, Sparkles, Film, Video, Infinity, Zap } from "lucide-react";
 import { LicenseDialog } from "./license-dialog";
+import { isTauri } from "@/lib/tauri-utils";
+import { open } from "@tauri-apps/plugin-shell";
 
 interface UpgradeDialogProps {
   isOpen: boolean;
@@ -39,6 +41,17 @@ const proFeatures = [
 
 export function UpgradeDialog({ isOpen, onClose, onActivateSuccess }: UpgradeDialogProps) {
   const [isLicenseDialogOpen, setIsLicenseDialogOpen] = useState(false);
+  const checkoutUrl =
+    process.env.NEXT_PUBLIC_CHECKOUT_URL ||
+    "https://www.ytsmartclip.org/checkout?productId=prod_17qZbU3KZnunyAzraSiqii";
+
+  const handleUpgradeClick = async () => {
+    if (isTauri()) {
+      await open(checkoutUrl);
+      return;
+    }
+    window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <>
@@ -123,7 +136,10 @@ export function UpgradeDialog({ isOpen, onClose, onActivateSuccess }: UpgradeDia
 
               {/* CTA Buttons */}
               <div className="flex flex-col gap-2 sm:flex-row">
-                <button className="flex-1 rounded-clay-button bg-linear-to-br from-clay-gradient-start to-clay-gradient-end px-6 py-3 font-heading text-base font-bold text-white shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:shadow-clay-button-hover active:scale-[0.92] active:shadow-clay-pressed">
+                <button
+                  onClick={handleUpgradeClick}
+                  className="flex-1 rounded-clay-button bg-linear-to-br from-clay-gradient-start to-clay-gradient-end px-6 py-3 font-heading text-base font-bold text-white shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:shadow-clay-button-hover active:scale-[0.92] active:shadow-clay-pressed"
+                >
                   <span className="flex items-center justify-center gap-2">
                     <Crown className="h-4 w-4" />
                     Upgrade Now
