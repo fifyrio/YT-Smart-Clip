@@ -52,6 +52,33 @@ jobs:
           # Install any system dependencies if needed
           echo "Setting up macOS build environment..."
 
+      - name: Setup Apple code signing (macOS)
+        if: matrix.platform == 'macos-latest'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          # Create certificate files
+          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+
+          # Create temporary keychain
+          security create-keychain -p actions build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p actions build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+
+          # Import certificate to keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign
+
+          # Enable codesigning from a non user interactive shell
+          security set-key-partition-list -S apple-tool:,apple: -s -k actions build.keychain
+
+          # Verify the identity is available
+          security find-identity -v -p codesigning
+
+          echo "✅ Apple code signing setup completed"
+
       - name: Install dependencies (Windows)
         if: matrix.platform == 'windows-latest'
         run: |
@@ -111,6 +138,82 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+
+      - name: Sign and notarize app (macOS)
+        if: matrix.platform == 'macos-latest'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          echo "🔐 Starting code signing and notarization process..."
+
+          # Find the .app bundle
+          APP_PATH=$(find src-tauri/target/universal-apple-darwin/release/bundle/macos -name "*.app" -type d | head -n 1)
+          DMG_PATH=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -name "*.dmg" | head -n 1)
+
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ App bundle not found"
+            exit 1
+          fi
+
+          echo "Found app at: $APP_PATH"
+          echo "Found DMG at: $DMG_PATH"
+
+          # Sign the external binaries first
+          RESOURCES_PATH="$APP_PATH/Contents/Resources"
+
+          if [ -f "$RESOURCES_PATH/yt-dlp" ]; then
+            echo "📝 Signing yt-dlp..."
+            codesign --force --timestamp --options runtime \
+              --sign "$APPLE_SIGNING_IDENTITY" \
+              "$RESOURCES_PATH/yt-dlp"
+          fi
+
+          if [ -f "$RESOURCES_PATH/ffmpeg" ]; then
+            echo "📝 Signing ffmpeg..."
+            codesign --force --timestamp --options runtime \
+              --sign "$APPLE_SIGNING_IDENTITY" \
+              "$RESOURCES_PATH/ffmpeg"
+          fi
+
+          # Sign the entire app bundle with hardened runtime
+          echo "📝 Signing app bundle with hardened runtime..."
+          codesign --force --deep --timestamp --options runtime \
+            --sign "$APPLE_SIGNING_IDENTITY" \
+            --entitlements src-tauri/entitlements.plist \
+            "$APP_PATH"
+
+          # Verify the signature
+          echo "✅ Verifying signature..."
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          spctl --assess --type execute --verbose=4 "$APP_PATH"
+
+          # Notarize the DMG
+          if [ -n "$DMG_PATH" ]; then
+            echo "📤 Uploading DMG for notarization..."
+
+            # Submit for notarization
+            xcrun notarytool submit "$DMG_PATH" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --wait \
+              --timeout 30m
+
+            # Staple the notarization ticket to the DMG
+            echo "📌 Stapling notarization ticket..."
+            xcrun stapler staple "$DMG_PATH"
+
+            # Verify stapling
+            xcrun stapler validate "$DMG_PATH"
+
+            echo "✅ Notarization completed successfully!"
+          fi
+
+          echo "✅ Code signing and notarization process completed!"
 
       - name: Upload artifacts (macOS)
         if: matrix.platform == 'macos-latest'

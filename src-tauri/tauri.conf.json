@@ -46,7 +46,7 @@
     ],
     "macOS": {
       "minimumSystemVersion": "10.13",
-      "entitlements": null,
+      "entitlements": "entitlements.plist",
       "exceptionDomain": "",
       "frameworks": [],
       "providerShortName": null,
