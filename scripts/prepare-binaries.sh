@@ -18,12 +18,12 @@ echo "Downloading yt-dlp..."
 curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos -o "$BINARIES_DIR/yt-dlp-aarch64-apple-darwin"
 chmod +x "$BINARIES_DIR/yt-dlp-aarch64-apple-darwin"
 
-# For x86_64 Macs, use the same binary (it's universal)
+# yt-dlp from GitHub is already universal, so we can use it for all architectures
 cp "$BINARIES_DIR/yt-dlp-aarch64-apple-darwin" "$BINARIES_DIR/yt-dlp-x86_64-apple-darwin"
+cp "$BINARIES_DIR/yt-dlp-aarch64-apple-darwin" "$BINARIES_DIR/yt-dlp-universal-apple-darwin"
 
 # Download ffmpeg (static build)
 echo "Downloading ffmpeg..."
-FFMPEG_VERSION="7.1"
 FFMPEG_URL="https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip"
 
 # Download for arm64
@@ -34,9 +34,15 @@ mv ffmpeg ffmpeg-aarch64-apple-darwin
 chmod +x ffmpeg-aarch64-apple-darwin
 rm ffmpeg.zip
 
-# Copy for x86_64 (you may want to download the Intel version separately)
+# Note: evermeet.cx ffmpeg is universal binary, so we can use it for all architectures
 cp ffmpeg-aarch64-apple-darwin ffmpeg-x86_64-apple-darwin
+cp ffmpeg-aarch64-apple-darwin ffmpeg-universal-apple-darwin
 
 echo "✅ Binaries prepared successfully!"
 echo "  - yt-dlp: $BINARIES_DIR/yt-dlp-*-apple-darwin"
 echo "  - ffmpeg: $BINARIES_DIR/ffmpeg-*-apple-darwin"
+echo ""
+echo "Architecture support:"
+echo "  - aarch64 (Apple Silicon)"
+echo "  - x86_64 (Intel)"
+echo "  - universal (Both)"

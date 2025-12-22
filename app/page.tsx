@@ -13,6 +13,7 @@ import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { Scissors, Settings } from "lucide-react";
 import type { ClipOptions } from "@/lib/types";
 import { getStoredActivationToken } from "@/lib/license-api";
+import { showWindow } from "./show-window";
 
 export default function Home() {
   const [videoId, setVideoId] = useState<string | null>(null);
@@ -61,6 +62,11 @@ export default function Home() {
     };
 
     checkActivation();
+  }, []);
+
+  // Show window after initial render
+  useEffect(() => {
+    showWindow();
   }, []);
 
   const handleActivateSuccess = useCallback(() => {

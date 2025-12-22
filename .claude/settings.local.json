@@ -31,7 +31,8 @@
       "Bash(fi)",
       "Bash(source \"$HOME/.cargo/env\")",
       "Bash(curl:*)",
-      "Bash(pnpm tauri icon:*)"
+      "Bash(pnpm tauri icon:*)",
+      "Bash(bash:*)"
     ]
   }
 }
