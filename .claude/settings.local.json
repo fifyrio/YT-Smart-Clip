@@ -32,7 +32,9 @@
       "Bash(source \"$HOME/.cargo/env\")",
       "Bash(curl:*)",
       "Bash(pnpm tauri icon:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm add:*)"
     ]
   }
 }

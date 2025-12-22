@@ -164,7 +164,7 @@ export function LicenseDialog({ isOpen, onClose, onActivateSuccess }: LicenseDia
           {/* Help Text */}
           <div className="mt-4 text-center">
             <p className="text-[10px] text-clay-muted">
-              Don't have a license?{" "}
+              Don&apos;t have a license?{" "}
               <button
                 onClick={handleClose}
                 className="font-semibold text-clay-accent hover:underline"

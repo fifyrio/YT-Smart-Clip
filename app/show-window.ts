@@ -7,7 +7,8 @@ let windowShown = false;
 export function showWindow() {
   if (windowShown) return;
 
-  if (typeof window !== "undefined" && window.__TAURI__) {
+  // Check if running in Tauri environment
+  if (typeof window !== "undefined" && "__TAURI__" in window) {
     // Small delay to ensure content is rendered
     setTimeout(async () => {
       try {
