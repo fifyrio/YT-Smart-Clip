@@ -20,7 +20,7 @@ export default function Home() {
   const [duration, setDuration] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(0);
-  const [selectedFormat, setSelectedFormat] = useState("720p");
+  const [selectedFormat, setSelectedFormat] = useState("360p");
   const [downloadDirectory, setDownloadDirectory] = useState<string>("");
   const [isPro, setIsPro] = useState(false);
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
