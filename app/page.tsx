@@ -10,7 +10,7 @@ import { ProcessingOptions } from "@/components/editor/processing-options";
 import { DownloadButton } from "@/components/download/download-button";
 import { UpgradeDialog } from "@/components/upgrade/upgrade-dialog";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
-import { Scissors, Settings } from "lucide-react";
+import { Scissors, Settings, Crown } from "lucide-react";
 import type { ClipOptions } from "@/lib/types";
 import { getStoredActivationToken } from "@/lib/license-api";
 import { showWindow } from "./show-window";
@@ -108,14 +108,30 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Settings Button */}
-            <button
-              onClick={() => setIsSettingsDialogOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/60 shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:shadow-clay-button-hover active:scale-[0.92] active:shadow-clay-pressed"
-              aria-label="Settings"
-            >
-              <Settings className="h-4 w-4 text-clay-foreground" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Get Pro Button - Only show when not Pro */}
+              {!isPro && (
+                <button
+                  onClick={() => setIsUpgradeDialogOpen(true)}
+                  className="flex h-9 items-center gap-1.5 rounded-full bg-linear-to-br from-[#A78BFA] to-[#7C3AED] px-3 shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:shadow-clay-button-hover active:scale-[0.92] active:shadow-clay-pressed"
+                  aria-label="Get Pro"
+                >
+                  <Crown className="h-3.5 w-3.5 text-white" />
+                  <span className="font-heading text-xs font-bold text-white">
+                    Get Pro
+                  </span>
+                </button>
+              )}
+
+              {/* Settings Button */}
+              <button
+                onClick={() => setIsSettingsDialogOpen(true)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/60 shadow-clay-button transition-all duration-200 hover:-translate-y-1 hover:shadow-clay-button-hover active:scale-[0.92] active:shadow-clay-pressed"
+                aria-label="Settings"
+              >
+                <Settings className="h-4 w-4 text-clay-foreground" />
+              </button>
+            </div>
           </div>
         </div>
       </header>

@@ -117,8 +117,8 @@ export function UpgradeDialog({ isOpen, onClose, onActivateSuccess }: UpgradeDia
                   <div>
                     <p className="text-xs text-clay-muted mb-0.5">Early Bird Offer</p>
                     <div className="flex items-baseline gap-1.5">
-                      <span className="font-heading text-3xl font-black text-clay-foreground">$4</span>
-                      <span className="text-sm text-clay-muted line-through">$19</span>
+                      <span className="font-heading text-3xl font-black text-clay-foreground">$8</span>
+                      <span className="text-sm text-clay-muted line-through">$16</span>
                       <span className="rounded-full bg-linear-to-br from-[#10B981] to-[#059669] px-2 py-0.5 text-xs font-bold text-white shadow-clay-button">
                         50% OFF
                       </span>
