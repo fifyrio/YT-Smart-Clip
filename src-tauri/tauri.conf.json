@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "YT Smart Clip",
   "version": "0.1.0",
-  "identifier": "com.ytsmartclip.app",
+  "identifier": "com.org.ytsmartclip",
   "build": {
     "frontendDist": "../out",
     "devUrl": "http://localhost:3002",

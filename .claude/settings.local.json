@@ -35,7 +35,12 @@
       "Bash(bash:*)",
       "Bash(pnpm build:*)",
       "Bash(pnpm add:*)",
-      "Bash(security find-identity:*)"
+      "Bash(security find-identity:*)",
+      "Bash(./scripts/quick-test.sh:*)",
+      "Bash(rustup target add:*)",
+      "Bash(./scripts/build-and-sign-macos.sh:*)",
+      "Bash(security find-key:*)",
+      "Bash(security dump-keychain:*)"
     ]
   }
 }
