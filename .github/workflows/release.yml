@@ -133,12 +133,13 @@ jobs:
 
           Write-Host "✅ Windows binaries prepared"
 
-      - name: Build Tauri app
+      - name: Build Tauri app (unsigned)
         run: pnpm tauri build ${{ matrix.args }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          # Don't sign during build - we'll sign manually in the next step
+          TAURI_SKIP_CODE_SIGNING: true
 
       - name: Sign and notarize app (macOS)
         if: matrix.platform == 'macos-latest'
@@ -152,7 +153,6 @@ jobs:
 
           # Find the .app bundle
           APP_PATH=$(find src-tauri/target/universal-apple-darwin/release/bundle/macos -name "*.app" -type d | head -n 1)
-          DMG_PATH=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -name "*.dmg" | head -n 1)
 
           if [ -z "$APP_PATH" ]; then
             echo "❌ App bundle not found"
@@ -160,7 +160,6 @@ jobs:
           fi
 
           echo "Found app at: $APP_PATH"
-          echo "Found DMG at: $DMG_PATH"
 
           # Sign the external binaries first
           RESOURCES_PATH="$APP_PATH/Contents/Resources"
@@ -189,30 +188,41 @@ jobs:
           # Verify the signature
           echo "✅ Verifying signature..."
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
-          spctl --assess --type execute --verbose=4 "$APP_PATH"
+          spctl --assess --type execute --verbose=4 "$APP_PATH" || echo "⚠️ Gatekeeper assessment may fail without notarization"
+
+          # Create a new DMG with the signed app
+          echo "📦 Creating DMG with signed app..."
+          DMG_DIR="src-tauri/target/universal-apple-darwin/release/bundle/dmg"
+          APP_NAME="YT Smart Clip"
+          DMG_PATH="$DMG_DIR/${APP_NAME}_signed.dmg"
+
+          # Remove old DMG if exists
+          rm -f "$DMG_PATH"
+
+          # Create DMG using hdiutil
+          hdiutil create -volname "$APP_NAME" -srcfolder "$APP_PATH" -ov -format UDZO "$DMG_PATH"
+
+          echo "Created signed DMG at: $DMG_PATH"
 
           # Notarize the DMG
-          if [ -n "$DMG_PATH" ]; then
-            echo "📤 Uploading DMG for notarization..."
+          echo "📤 Uploading DMG for notarization..."
 
-            # Submit for notarization
-            xcrun notarytool submit "$DMG_PATH" \
-              --apple-id "$APPLE_ID" \
-              --password "$APPLE_PASSWORD" \
-              --team-id "$APPLE_TEAM_ID" \
-              --wait \
-              --timeout 30m
+          # Submit for notarization
+          xcrun notarytool submit "$DMG_PATH" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait \
+            --timeout 30m
 
-            # Staple the notarization ticket to the DMG
-            echo "📌 Stapling notarization ticket..."
-            xcrun stapler staple "$DMG_PATH"
+          # Staple the notarization ticket to the DMG
+          echo "📌 Stapling notarization ticket..."
+          xcrun stapler staple "$DMG_PATH"
 
-            # Verify stapling
-            xcrun stapler validate "$DMG_PATH"
+          # Verify stapling
+          xcrun stapler validate "$DMG_PATH"
 
-            echo "✅ Notarization completed successfully!"
-          fi
-
+          echo "✅ Notarization completed successfully!"
           echo "✅ Code signing and notarization process completed!"
 
       - name: Upload artifacts (macOS)
@@ -221,7 +231,7 @@ jobs:
         with:
           name: macos-universal
           path: |
-            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*_signed.dmg
             src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app
           if-no-files-found: error
 
