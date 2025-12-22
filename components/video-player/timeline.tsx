@@ -23,16 +23,16 @@ export function Timeline({ duration, startTime, endTime, onTimeChange }: Timelin
   const clipDuration = endTime - startTime;
 
   return (
-    <div className="w-full space-y-2">
-      <div className="flex items-center gap-2">
-        <Scissors className="h-3.5 w-3.5 text-primary" />
-        <span className="text-xs font-medium">Clip Range</span>
-        <span className="text-[10px] text-muted-foreground ml-auto">
+    <div className="w-full space-y-3">
+      {/* Duration display */}
+      <div className="flex items-center justify-end">
+        <span className="text-[10px] text-[#635F69] font-medium">
           Duration: {formatTime(clipDuration)}
         </span>
       </div>
 
-      <div className="space-y-2">
+      {/* Slider and time displays */}
+      <div className="space-y-3">
         <Slider
           min={0}
           max={duration || 100}
@@ -43,14 +43,18 @@ export function Timeline({ duration, startTime, endTime, onTimeChange }: Timelin
           minStepsBetweenThumbs={1}
         />
 
-        <div className="flex justify-between items-center text-xs">
-          <div className="space-y-0.5">
-            <p className="text-[10px] text-muted-foreground">Start</p>
-            <p className="font-mono font-medium text-xs">{formatTime(startTime)}</p>
+        {/* Time display cards with Clay styling */}
+        <div className="flex justify-between items-center gap-3">
+          {/* Start time card */}
+          <div className="flex-1 rounded-[20px] bg-white/60 backdrop-blur-xl px-3 py-2 shadow-clay-card">
+            <p className="text-[10px] text-[#635F69] font-medium mb-0.5">Start</p>
+            <p className="font-mono font-bold text-xs text-[#332F3A]">{formatTime(startTime)}</p>
           </div>
-          <div className="space-y-0.5 text-right">
-            <p className="text-[10px] text-muted-foreground">End</p>
-            <p className="font-mono font-medium text-xs">{formatTime(endTime)}</p>
+
+          {/* End time card */}
+          <div className="flex-1 rounded-[20px] bg-white/60 backdrop-blur-xl px-3 py-2 shadow-clay-card">
+            <p className="text-[10px] text-[#635F69] font-medium mb-0.5">End</p>
+            <p className="font-mono font-bold text-xs text-[#332F3A]">{formatTime(endTime)}</p>
           </div>
         </div>
       </div>

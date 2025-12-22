@@ -30,7 +30,8 @@
       "Bash(else echo \"Rust not installed\")",
       "Bash(fi)",
       "Bash(source \"$HOME/.cargo/env\")",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(pnpm tauri icon:*)"
     ]
   }
 }
