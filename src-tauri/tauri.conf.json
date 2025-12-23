@@ -40,10 +40,11 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [],
-    "resources": [
-      "binaries/*"
+    "externalBin": [
+      "binaries/yt-dlp",
+      "binaries/ffmpeg"
     ],
+    "resources": [],
     "macOS": {
       "minimumSystemVersion": "10.13",
       "entitlements": "entitlements.plist",
