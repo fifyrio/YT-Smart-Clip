@@ -108,14 +108,40 @@ fn get_binary_path(app_handle: &AppHandle, binary_name: &str) -> Result<std::pat
         .resource_dir()
         .map_err(|e| format!("Failed to get resource dir: {}", e))?;
 
+    // Construct the platform-specific binary name with target triple
+    let binary_with_target = if cfg!(target_os = "windows") {
+        format!("{}-x86_64-pc-windows-msvc.exe", binary_name)
+    } else if cfg!(target_os = "macos") {
+        #[cfg(target_arch = "aarch64")]
+        {
+            format!("{}-aarch64-apple-darwin", binary_name)
+        }
+        #[cfg(target_arch = "x86_64")]
+        {
+            format!("{}-x86_64-apple-darwin", binary_name)
+        }
+        #[cfg(not(any(target_arch = "aarch64", target_arch = "x86_64")))]
+        {
+            format!("{}-universal-apple-darwin", binary_name)
+        }
+    } else if cfg!(target_os = "linux") {
+        format!("{}-x86_64-unknown-linux-gnu", binary_name)
+    } else {
+        binary_name.to_string()
+    };
+
     // Try different possible locations for the binary
     let possible_paths = vec![
+        resource_path.join(format!("binaries/{}", binary_with_target)),
+        resource_path.join(&binary_with_target),
+        resource_path.join(format!("../Resources/binaries/{}", binary_with_target)),
+        // Also try without target triple as fallback
         resource_path.join(format!("binaries/{}", binary_name)),
         resource_path.join(binary_name),
-        resource_path.join(format!("../Resources/binaries/{}", binary_name)),
     ];
 
-    log::info!("Searching for {} in resource directory: {}", binary_name, resource_path.display());
+    log::info!("Searching for {} (as {}) in resource directory: {}",
+               binary_name, binary_with_target, resource_path.display());
 
     for binary_path in possible_paths {
         log::info!("Checking path: {}", binary_path.display());
@@ -130,6 +156,17 @@ fn get_binary_path(app_handle: &AppHandle, binary_name: &str) -> Result<std::pat
         log::info!("Resource directory contents:");
         for entry in entries.flatten() {
             log::info!("  - {}", entry.path().display());
+        }
+    }
+
+    // Also list binaries subdirectory if it exists
+    let binaries_dir = resource_path.join("binaries");
+    if binaries_dir.exists() {
+        if let Ok(entries) = std::fs::read_dir(&binaries_dir) {
+            log::info!("Binaries directory contents:");
+            for entry in entries.flatten() {
+                log::info!("  - {}", entry.path().display());
+            }
         }
     }
 

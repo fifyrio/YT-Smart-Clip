@@ -40,7 +40,8 @@
       "Bash(rustup target add:*)",
       "Bash(./scripts/build-and-sign-macos.sh:*)",
       "Bash(security find-key:*)",
-      "Bash(security dump-keychain:*)"
+      "Bash(security dump-keychain:*)",
+      "Bash(pnpm tauri build:*)"
     ]
   }
 }
