@@ -59,25 +59,32 @@ jobs:
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: |
-          # Create certificate files
-          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+          # Only run if certificate is configured
+          if [ -n "$APPLE_CERTIFICATE" ]; then
+            echo "🔐 Setting up Apple code signing..."
 
-          # Create temporary keychain
-          security create-keychain -p actions build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p actions build.keychain
-          security set-keychain-settings -t 3600 -u build.keychain
+            # Create certificate files
+            echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
 
-          # Import certificate to keychain
-          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign
+            # Create temporary keychain
+            security create-keychain -p actions build.keychain
+            security default-keychain -s build.keychain
+            security unlock-keychain -p actions build.keychain
+            security set-keychain-settings -t 3600 -u build.keychain
 
-          # Enable codesigning from a non user interactive shell
-          security set-key-partition-list -S apple-tool:,apple: -s -k actions build.keychain
+            # Import certificate to keychain
+            security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign
 
-          # Verify the identity is available
-          security find-identity -v -p codesigning
+            # Enable codesigning from a non user interactive shell
+            security set-key-partition-list -S apple-tool:,apple: -s -k actions build.keychain
 
-          echo "✅ Apple code signing setup completed"
+            # Verify the identity is available
+            security find-identity -v -p codesigning
+
+            echo "✅ Apple code signing setup completed"
+          else
+            echo "⚠️ No Apple certificate configured - skipping code signing setup"
+          fi
 
       - name: Install dependencies (Windows)
         if: matrix.platform == 'windows-latest'
@@ -232,33 +239,37 @@ jobs:
 
           echo "Created signed DMG at: $DMG_PATH"
 
-          # Only notarize if we have proper credentials and signing identity
-          if [ -n "$APPLE_ID" ] && [ -n "$APPLE_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ]; then
-            # Notarize the DMG
-            echo "📤 Uploading DMG for notarization..."
+          # Check if notarization should be performed
+          # Set ENABLE_NOTARIZATION=true in repository secrets to enable
+          if [ "${{ secrets.ENABLE_NOTARIZATION }}" = "true" ] && [ -n "$APPLE_ID" ] && [ -n "$APPLE_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ]; then
+            echo "📤 Notarization enabled - uploading DMG..."
 
-            # Submit for notarization
-            xcrun notarytool submit "$DMG_PATH" \
+            # Submit for notarization (async - don't wait)
+            SUBMISSION_ID=$(xcrun notarytool submit "$DMG_PATH" \
               --apple-id "$APPLE_ID" \
               --password "$APPLE_PASSWORD" \
               --team-id "$APPLE_TEAM_ID" \
-              --wait \
-              --timeout 30m || {
-                echo "⚠️ Notarization failed, but continuing with signed DMG"
-                exit 0
-              }
+              --output-format json | jq -r '.id')
 
-            # Staple the notarization ticket to the DMG
-            echo "📌 Stapling notarization ticket..."
-            xcrun stapler staple "$DMG_PATH" || echo "⚠️ Failed to staple, but DMG is still signed"
+            echo "📋 Notarization submission ID: $SUBMISSION_ID"
+            echo "ℹ️  Check status with: xcrun notarytool log $SUBMISSION_ID --apple-id $APPLE_ID --password <app-password> --team-id $APPLE_TEAM_ID"
 
-            # Verify stapling
-            xcrun stapler validate "$DMG_PATH" || echo "⚠️ Stapling validation failed"
+            # Optional: Wait for notarization (can take 5-30 minutes)
+            # Uncomment the following lines to wait for completion:
+            # xcrun notarytool wait "$SUBMISSION_ID" \
+            #   --apple-id "$APPLE_ID" \
+            #   --password "$APPLE_PASSWORD" \
+            #   --team-id "$APPLE_TEAM_ID" \
+            #   --timeout 30m
 
-            echo "✅ Notarization completed successfully!"
+            # # Staple the notarization ticket
+            # xcrun stapler staple "$DMG_PATH"
+
+            echo "✅ Notarization submitted (async)"
           else
-            echo "⚠️ Skipping notarization - credentials not fully configured"
-            echo "DMG is signed but not notarized"
+            echo "⚠️ Notarization disabled or credentials not configured"
+            echo "   Set ENABLE_NOTARIZATION=true in secrets to enable"
+            echo "   DMG is signed but not notarized"
           fi
 
           echo "✅ Code signing process completed!"
