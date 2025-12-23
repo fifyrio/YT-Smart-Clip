@@ -174,36 +174,33 @@ jobs:
 
           # List contents to verify structure
           echo "📁 App bundle contents:"
-          ls -la "$APP_PATH/Contents/Resources/" || true
+          ls -laR "$APP_PATH/Contents/Resources/" || true
 
           # Sign the external binaries first
           RESOURCES_PATH="$APP_PATH/Contents/Resources"
 
-          if [ -f "$RESOURCES_PATH/yt-dlp" ]; then
-            echo "📝 Signing yt-dlp..."
-            codesign --force --timestamp --options runtime \
-              --sign "$APPLE_SIGNING_IDENTITY" \
-              "$RESOURCES_PATH/yt-dlp" || {
-                echo "❌ Failed to sign yt-dlp"
-                echo "Using fallback: signing without specific identity"
+          # Sign all binaries in the binaries directory
+          if [ -d "$RESOURCES_PATH/binaries" ]; then
+            echo "📝 Signing binaries in $RESOURCES_PATH/binaries/..."
+            for binary in "$RESOURCES_PATH/binaries"/*; do
+              if [ -f "$binary" ] && [ -x "$binary" ]; then
+                echo "  Signing $(basename "$binary")..."
                 codesign --force --timestamp --options runtime \
-                  --sign - \
-                  "$RESOURCES_PATH/yt-dlp"
-              }
+                  --sign "${APPLE_SIGNING_IDENTITY:-"-"}" \
+                  "$binary" || echo "  ⚠️ Failed to sign $(basename "$binary")"
+              fi
+            done
           fi
 
-          if [ -f "$RESOURCES_PATH/ffmpeg" ]; then
-            echo "📝 Signing ffmpeg..."
-            codesign --force --timestamp --options runtime \
-              --sign "$APPLE_SIGNING_IDENTITY" \
-              "$RESOURCES_PATH/ffmpeg" || {
-                echo "❌ Failed to sign ffmpeg"
-                echo "Using fallback: signing without specific identity"
-                codesign --force --timestamp --options runtime \
-                  --sign - \
-                  "$RESOURCES_PATH/ffmpeg"
-              }
-          fi
+          # Also check for binaries in root Resources directory
+          for binary_name in yt-dlp ffmpeg; do
+            if [ -f "$RESOURCES_PATH/$binary_name" ]; then
+              echo "📝 Signing $binary_name..."
+              codesign --force --timestamp --options runtime \
+                --sign "${APPLE_SIGNING_IDENTITY:-"-"}" \
+                "$RESOURCES_PATH/$binary_name" || echo "⚠️ Failed to sign $binary_name"
+            fi
+          done
 
           # Sign the entire app bundle with hardened runtime
           echo "📝 Signing app bundle with hardened runtime..."

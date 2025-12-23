@@ -40,9 +40,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/yt-dlp",
-      "binaries/ffmpeg"
+    "externalBin": [],
+    "resources": [
+      "binaries/*"
     ],
     "macOS": {
       "minimumSystemVersion": "10.13",

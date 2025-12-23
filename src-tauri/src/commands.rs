@@ -103,19 +103,41 @@ fn get_binary_path(app_handle: &AppHandle, binary_name: &str) -> Result<std::pat
         }
     }
 
-    // In production or if system binary not found, use bundled sidecar
+    // In production or if system binary not found, use bundled binary from resources
     let resource_path = app_handle.path()
         .resource_dir()
         .map_err(|e| format!("Failed to get resource dir: {}", e))?;
 
-    let binary_path = resource_path.join(format!("binaries/{}", binary_name));
+    // Try different possible locations for the binary
+    let possible_paths = vec![
+        resource_path.join(format!("binaries/{}", binary_name)),
+        resource_path.join(binary_name),
+        resource_path.join(format!("../Resources/binaries/{}", binary_name)),
+    ];
 
-    if binary_path.exists() {
-        log::info!("Using bundled binary for {}: {}", binary_name, binary_path.display());
-        Ok(binary_path)
-    } else {
-        Err(format!("{} binary not found. Please ensure it's bundled with the app.", binary_name))
+    log::info!("Searching for {} in resource directory: {}", binary_name, resource_path.display());
+
+    for binary_path in possible_paths {
+        log::info!("Checking path: {}", binary_path.display());
+        if binary_path.exists() {
+            log::info!("Found bundled binary for {}: {}", binary_name, binary_path.display());
+            return Ok(binary_path);
+        }
     }
+
+    // List contents of resource directory for debugging
+    if let Ok(entries) = std::fs::read_dir(&resource_path) {
+        log::info!("Resource directory contents:");
+        for entry in entries.flatten() {
+            log::info!("  - {}", entry.path().display());
+        }
+    }
+
+    Err(format!(
+        "{} binary not found in resource directory: {}. Please ensure it's bundled with the app.",
+        binary_name,
+        resource_path.display()
+    ))
 }
 
 /// Convert quality ID to yt-dlp format selector
