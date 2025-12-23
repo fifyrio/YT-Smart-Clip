@@ -290,13 +290,47 @@ jobs:
         with:
           path: artifacts
 
+      - name: List downloaded artifacts
+        run: |
+          echo "📦 Downloaded artifacts:"
+          ls -R artifacts/
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release-files
+
+          # Find and copy DMG file
+          find artifacts/macos-dmg -name "*.dmg" -exec cp {} release-files/ \;
+
+          # Find and copy EXE installer
+          find artifacts/windows-installer -name "*-setup.exe" -exec cp {} release-files/ \;
+
+          echo "📁 Files to be released:"
+          ls -lh release-files/
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            artifacts/macos-dmg/**/*
-            artifacts/windows-installer/**/*
-          draft: true
+          files: release-files/*
+          draft: false
+          prerelease: false
           generate_release_notes: true
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## 📥 Download
+
+            ### macOS (Universal Binary - Intel & Apple Silicon)
+            Download the `.dmg` file below
+
+            ### Windows (x64)
+            Download the `-setup.exe` file below
+
+            ## ✨ What's New
+
+            Check the release notes below for details.
+
+            ---
+
+            🤖 This release was automatically built and signed by GitHub Actions.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
