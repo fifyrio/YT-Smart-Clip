@@ -4,6 +4,25 @@
 
 ## 脚本说明
 
+### 0. `prepare-binaries.sh` - 下载打包所需二进制
+
+**用途**: 为 Tauri 构建准备 `yt-dlp` 与 `ffmpeg` sidecar，可确保 Windows 与 macOS 安装包都内置依赖。
+
+**使用方法**:
+```bash
+# 自动根据当前系统下载（macOS 或 Windows）
+bash scripts/prepare-binaries.sh
+
+# 或指定平台，方便在 CI 中提前准备
+bash scripts/prepare-binaries.sh macos
+bash scripts/prepare-binaries.sh windows
+
+# 同时准备两套（例如本地预先缓存）
+bash scripts/prepare-binaries.sh all
+```
+
+> 生成的文件会放在 `src-tauri/binaries/` 中，并使用目标三元组命名，如 `yt-dlp-x86_64-pc-windows-msvc.exe`，以便运行时正确选取。
+
 ### 1. `quick-test.sh` - 快速测试 ⚡
 
 **用途**: 最快的本地测试方法，使用 ad-hoc 签名
